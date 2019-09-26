@@ -2,28 +2,37 @@
 	session_start();
 
 	$action = $_POST['action'];
-	$sala = $_SESSION['sala'];
+	$idSala = $_POST['idSala'];
+	$sala = getSala($idSala);
+	$player = $_SESSION['player'];
 
 	switch($action){
 		
 		// OBTEM OS MOVIMENTOS (ATÉ AGORA) DE UMA DETERMINADA SALA
 		case 'getSala':
-			$movimentos = getMovimentos($sala);
-			echo json_encode($movimentos, true);
+			echo json_encode($sala, true);
 			break;
 
 		// SALVA OS MOVIMENTOS DO TURNO ATUAL
 		case 'saveTurn':
-			echo gettype($_POST['turno']);
+			if ( $player!=$sala->p1 && $player!=$sala->p2 ) break;
+
+			$turno = json_decode($_POST['turno']);
+			echo "1";
 			break;
 
-		
 		default: break;
 	}
 
-
-	// AS FUNÇÕES ABAIXOS ESTÃO SÓ NOS COOKIES MAS DEPOIS PRECISA TROCAR POR CONSULTAS AO BANCO
-	function getMovimentos($sala){
-		return $_SESSION['movimentos'];
+	// FALTA FAZER SALVAR EM ARQUIVO, DENTRO DA PASTA saves/
+	// PODE SER SÓ UM ARQUIVO .sav PRA CADA SALA MESMO, MAIS FÁCIL, MAS DENTRO É SÓ UM ASCII NORMAL, COM O JSON DA PARTIDA
+	function getSala($sala){
+		return $_SESSION['sala'];
 	}
+
+	function saveTurno($turno){
+		$_SESSION['sala']->movimentos[] = $turno;
+	}
+
+
 

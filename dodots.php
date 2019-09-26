@@ -1,16 +1,56 @@
 <?php
 	session_start();
 
+	// GERANDO OU RECUPERANDO A TOKEN DO PLAYER
+	$player = isset($_SESSION['player']) ? $_SESSION['player'] : newPlayer();
+
+	// GERANDO OU RECUPERANDO OS DADOS DA SALA
 	$sala = isset($_GET['sala']) ? $_GET['sala'] : getSala();
-	$_SESSION['sala'] = $sala;
+
+	// ATRIBUINDO O PLAYER AO PRIMEIRO SLOT DISPONÍVEL
+	// SE NÃO TIVER SLOT DE PLAYER DISPONÍVEL ELE FICARÁ COMO ESPECTADOR
+	if ( $sala->p1==null ) $sala->p1 = $player;
+	else if ( $sala->p2==null ) $sala->p2 = $player;
+
+	// FALTA:
+
+	// SE A SALA FOR NOVA (OU SEJA, SE TIVER 0 MOVIMENTOS SALVOS) SORTEAR AQUI QUAL PLAYER COMEÇA
+	// NO HTML, EM VEZ DE SORTEAR, COMO ERA ANTES, É NECESSÁRIO SÓ SELECIONAR O PLAYER ATUAL
+	// USAR O ID DE PLAYER 1 E PLAYER 2 EM CADA "CAIXA" DE PLAYER
+	// COLOCAR OVERLAY IMPEDINDO O JOGO ENQUANTO ESTIVER FALTANDO ALGUM PLAYER CONECTAR
+	// SE O ID DO PLAYER QUE CARREGOU A SALA FOR DIFERENTE DE AMBOS OS PLAYERS QUE ESTÃO JOGANDO, COLOCAR OVERLAY IMPEDINDO QUE ELE JOGUE
+	// DURANTE O JOGO BASTA VERIFICAR SE O TURNO É DO PLAYER ATUAL (USANDO O ID).
+	// SE NÃO FOR O ATUAL, ESPERA PELA JOGADA DO PRÓXIMO
+	// QUANDO A JOGADA CHEGAR, ATUALIZA FAZENDO A ANIMAÇÃO, E ENTÃO VERIFICA SE É O SEU PRÓPRIO TURNO
+	// A SALA TEM QUE RETORNAR O "CURRENT" QUANDO TERMINA O MOVIMENTO DE UM
+	// SE O CURRENT NUNCA FOR IGUAL AO ID DO JOGADOR ATUAL ENTÃO ELE AUTOMATICAMENTE SÓ FICA COMO ESPECTADOR, E A OVERLAY NUNCA SAI
+	// OU SEJA, ELE NUNCA CONSEGUE CLICAR
+
+	// FUNÇÕES AUXILIARES ABAIXO
+	function newPlayer(){
+		$_SESSION['player'] = token(8);
+		return $_SESSION['player'];
+	}
 
 	function getSala(){
 		if ( isset($_SESSION['sala']) ) return $_SESSION['sala'];
 
+		$sala = new stdClass();
+		$sala->token = token(8);
+		$sala->p1 = null;
+		$sala->p2 = null;
+		$sala->current = null;
+		$sala->movimentos = array();
+
+		$_SESSION['sala'] = $sala;
+		return $sala;
+	}
+
+	function token($tamanho){
 		$characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
 		$string = '';
 		$max = strlen($characters) - 1;
-		for ($i = 0; $i < 8; $i++) $string .= $characters[mt_rand(0, $max)];
+		for ($i = 0; $i < $tamanho; $i++) $string .= $characters[mt_rand(0, $max)];
 		return $string;
 	}
 ?>
@@ -42,6 +82,7 @@
 
 			.salabox { display: block; position: relative; width: 100%; text-align: center; font-size: 14px; }
 			.salabox input { display: inline-block; border: solid 1px #ccc; padding: 4px; text-align: center; margin: 0 5px; }
+			.salabox .copiar { display: inline-block; border: none; background: #ccc; padding: 4px 10px; font-size: 12px; cursor: pointer; }
 
 			.tip { display: block; position: relative; width: 100%; text-align: center; font-size: 12px; color: #777; font-style: italic; }
 		</style>
@@ -83,7 +124,8 @@
 
 		<div class="salabox">
 			<span>ID da sala: </span>
-			<input name="sala" id="sala" value="<?=$sala?>" />
+			<input name="sala" id="sala" value="<?=$sala->token?>" />
+			<button class="copiar" onclick="copiar()">Copiar</button>
 			<span class="tip">(caso queira entrar em uma sala cole o id e aperte ENTER)</span>
 		</div>
 
@@ -96,6 +138,17 @@
 			if ( qual<0.5 ) document.getElementsByClassName("p1")[0].classList.add("pSel");
 			else document.getElementsByClassName("p2")[0].classList.add("pSel");
 			
+			let copiar = function(){
+				let campo = document.getElementById("sala");
+				let sala = campo.value;
+				campo.value = `https://caini.tech/web/dodots.php?sala=${sala}`;
+				campo.select();
+				campo.setSelectionRange(0, 99999); /*For mobile devices*/
+				document.execCommand("copy");
+				campo.value = sala;
+				campo.select();
+		  	}
+
 			let clicou = function(obj){
 				if ( obj.classList.contains("oculto") ) return;
 				if ( window.animando ) return;
@@ -153,7 +206,7 @@
 					if ( document.getElementsByClassName("cadaDot").length==0 ) alert("gameOver");
 				}, 800)
 			}
-			
+
 			let trocaTurno = function(){
 				if ( document.getElementsByClassName("p1")[0].classList.contains("pSel") ){
 					document.getElementsByClassName("p1")[0].classList.remove("pSel");
@@ -183,6 +236,7 @@
 
 			let updateSala = function(){
 				var data = new FormData();
+				data.append('idSala', document.getElementById("sala").value );
 				data.append('action', 'getSala');
 
 				var xhttp = new XMLHttpRequest();
@@ -190,6 +244,7 @@
 					if (this.readyState == 4 && this.status == 200) {
 						// AQUI COLOCAR CÓDIGO QUE "DÁ PLAY" NA LISTA DE MOVIMENTOS 
 						// JÁ RODADOS NA HORA QUE EU CARREGUEI A SALA
+						console.log(xhttp.responseText);
 					}
 				};
 				xhttp.open("POST", "req.php", true);

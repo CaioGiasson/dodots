@@ -1,22 +1,29 @@
 <?php
 	session_start();
 
+	// GERANDO OU RECUPERANDO OS DADOS DA SALA
+	if ( isset($_GET['sala']) ) {
+		$_SESSION['sala'] = $_GET['sala'];
+		$sala = getSala($_GET['sala']);
+	}
+	else if ( isset($_SESSION['sala']) ) $sala = getSala($_SESSION['sala']);
+	else $sala = novaSala();
+
 	// GERANDO OU RECUPERANDO A TOKEN DO PLAYER
 	$player = isset($_SESSION['player']) ? $_SESSION['player'] : newPlayer();
-
-	// GERANDO OU RECUPERANDO OS DADOS DA SALA
-	$sala = isset($_GET['sala']) ? $_GET['sala'] : getSala();
 
 	// ATRIBUINDO O PLAYER AO PRIMEIRO SLOT DISPONÍVEL
 	// SE NÃO TIVER SLOT DE PLAYER DISPONÍVEL ELE FICARÁ COMO ESPECTADOR
 	if ( $sala->p1==null ) $sala->p1 = $player;
-	else if ( $sala->p2==null ) $sala->p2 = $player;
+	else if ( $sala->p1!=$player || $sala->p2==null ) $sala->p2 = $player;
 
-	// FALTA:
+	// DEFININDO DE QUEM É A VEZ
+	if ( $sala->current == null ) $sala->current = $sala->p2;
+	$p1_class = $sala->current == $sala->p1 ? 'pSel' : '';
+	$p2_class = $sala->current == $sala->p2 ? 'pSel' : '';	
 
-	// SE A SALA FOR NOVA (OU SEJA, SE TIVER 0 MOVIMENTOS SALVOS) SORTEAR AQUI QUAL PLAYER COMEÇA
-	// NO HTML, EM VEZ DE SORTEAR, COMO ERA ANTES, É NECESSÁRIO SÓ SELECIONAR O PLAYER ATUAL
-	// USAR O ID DE PLAYER 1 E PLAYER 2 EM CADA "CAIXA" DE PLAYER
+	saveSala($sala);
+
 	// COLOCAR OVERLAY IMPEDINDO O JOGO ENQUANTO ESTIVER FALTANDO ALGUM PLAYER CONECTAR
 	// SE O ID DO PLAYER QUE CARREGOU A SALA FOR DIFERENTE DE AMBOS OS PLAYERS QUE ESTÃO JOGANDO, COLOCAR OVERLAY IMPEDINDO QUE ELE JOGUE
 	// DURANTE O JOGO BASTA VERIFICAR SE O TURNO É DO PLAYER ATUAL (USANDO O ID).
@@ -32,18 +39,30 @@
 		return $_SESSION['player'];
 	}
 
-	function getSala(){
-		if ( isset($_SESSION['sala']) ) return $_SESSION['sala'];
-
+	function novaSala($token = ""){
 		$sala = new stdClass();
-		$sala->token = token(8);
+		if ( strlen($token)<4 ) $sala->token = token(8);
+		else $sala->token = $token;
 		$sala->p1 = null;
 		$sala->p2 = null;
 		$sala->current = null;
 		$sala->movimentos = array();
+		saveSala($sala);
 
-		$_SESSION['sala'] = $sala;
 		return $sala;
+	}
+
+	function getSala($token){
+		$nomeArq = "saves/$token.txt";
+		$salaFile = fopen( $nomeArq, "r");
+		$sala = fgets($salaFile);
+		$sala = str_replace("\"", '"', $sala);
+		fclose($salaFile);
+		if ( strlen($sala)==0 ){
+			$sala = novaSala($token);
+			saveSala($sala);
+		} else $sala = json_decode($sala, true);
+		return (object) $sala;
 	}
 
 	function token($tamanho){
@@ -52,6 +71,14 @@
 		$max = strlen($characters) - 1;
 		for ($i = 0; $i < $tamanho; $i++) $string .= $characters[mt_rand(0, $max)];
 		return $string;
+	}
+
+	function saveSala($sala){
+		$nomeArq = "saves/$sala->token.txt";
+		$salaFile = fopen( $nomeArq, "w+");
+		$salaTexto = json_encode($sala, true);
+		$try = fwrite($salaFile, $salaTexto );
+		fclose($salaFile);
 	}
 ?>
 <html>
@@ -89,9 +116,22 @@
 	</head>
 	<body onload="updateSala()">
 
+		<div class="salabox">
+			<span>ID da sala: </span>
+			<input name="sala" id="sala" value="<?=$sala->token?>" />
+			<input type="hidden" name="eu" id="eu" value="<?=$_SESSION['player']?>" />
+			<button class="copiar" onclick="copiar()">Copiar</button>
+			<span class="tip">(caso queira entrar em uma sala cole o id e aperte ENTER)</span>
+			<span class="tip">Você é: <?=$_SESSION['player']?></span>
+			<span class="tip">P1: <?=$sala->p1?></span>
+			<span class="tip">P2: <?=$sala->p2?></span>
+		</div>
+
+		<p>&nbsp;</p>
+
 		<div class="players">
-			<div class="p p1 smooth-fast" data-id="1"><h3>Player 1</h3></div>
-			<div class="p p2 smooth-fast" data-id="2"><h3>Player 2</h3></div>
+			<div class="p p1 smooth-fast <?=$p1_class?>" data-id="<?=$sala->p1?>" title="<?=$sala->p1?>"><h3>Player 1</h3></div>
+			<div class="p p2 smooth-fast <?=$p2_class?>" data-id="<?=$sala->p2?>" title="<?=$sala->p2?>"><h3>Player 2</h3></div>
 		</div>
 
 		<div class="monte smooth-fast">
@@ -122,21 +162,16 @@
 			<span class="dodot cadaDot smooth-fast" onclick="clicou(this)" data-id="16"></span>
 		</div>
 
-		<div class="salabox">
-			<span>ID da sala: </span>
-			<input name="sala" id="sala" value="<?=$sala->token?>" />
-			<button class="copiar" onclick="copiar()">Copiar</button>
-			<span class="tip">(caso queira entrar em uma sala cole o id e aperte ENTER)</span>
-		</div>
-
 		<span class="fimTurno oculto smooth-fast" onclick="terminarTurno(this)">Terminar turno</span>
 
 		<script type="text/javascript">
 			window.animando = false;
 
-			let qual = Math.random();
-			if ( qual<0.5 ) document.getElementsByClassName("p1")[0].classList.add("pSel");
-			else document.getElementsByClassName("p2")[0].classList.add("pSel");
+			// SORTEIO ANTIGO DE QUEM ERA A VEZ, FOI SUBSTITUÍDO PELA VERSÃO DISSO EM PHP
+			// PS: NÃO É MAIS RANDOM. VISITA SEMPRE COMEÇA
+			// let qual = Math.random();
+			// if ( qual<0.5 ) document.getElementsByClassName("p1")[0].classList.add("pSel");
+			// else document.getElementsByClassName("p2")[0].classList.add("pSel");
 			
 			let copiar = function(){
 				let campo = document.getElementById("sala");
@@ -152,6 +187,13 @@
 			let clicou = function(obj){
 				if ( obj.classList.contains("oculto") ) return;
 				if ( window.animando ) return;
+
+				const playerAtual = document.getElementsByClassName("pSel")[0].dataset.id;
+				const playerEu = document.getElementById("eu").value;
+				if ( playerAtual != playerEu ) {
+					alert("Calma, não é sua vez!");
+					return;
+				}
 
 				if ( obj.parentElement.classList.contains("mSel") || document.getElementsByClassName("mSel").length==0 ) {
 					if ( obj.classList.contains("dotSel") ){

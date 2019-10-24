@@ -28,6 +28,8 @@
 		// OBTEM OS MOVIMENTOS (ATÉ AGORA) DE UMA DETERMINADA SALA
 		case 'getSala':
 			header("Content-Type: application/json");
+			$sala->quando = $_POST['quando'];
+
 			echo json_encode($sala, true);
 			break;
 

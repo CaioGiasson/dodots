@@ -112,7 +112,7 @@
 
 			.dodot { display: inline-block; width: 50px; height: 50px; background: none; border: none; margin: 5px; cursor: pointer; z-index: 10;  }
 			.dodot img { display: block; position: relative; height: 100%; }
-			.dodot.oculto { width: 0; height: 0; opacity: 0; margin: 0; border: solid 0px #ccc; }
+			.dodot.oculto { width: 0; height: 0; opacity: 0; margin: 0; border: solid 0px #ccc; opacity: 0; }
 			.dodot.dotSel { }
 
 			.players { display: block; position: relative; width: 100%; height: 220px; clear: both; z-index: 10; }
@@ -147,11 +147,11 @@
 		<img class="fundo" src="img/fundo.png"/>
 
 		<div class="salabox">
-			<span>ID da sala: </span>
-			<input name="sala" id="sala" value="<?=$sala->token?>" />
+			<span>ID da sala: <?=$sala->token?></span>
+			<input type="hidden" name="sala" id="sala" value="<?=$sala->token?>" />
 			<input type="hidden" name="eu" id="eu" value="<?=$_SESSION['player']?>" />
 			<input type="hidden" name="turnoAtual" id="turnoAtual" value="<?=$turnoAtual?>" />
-			<button class="copiar" onclick="copiar()">Copiar</button>
+			<!-- <button class="copiar" onclick="copiar()">Copiar</button> -->
 			<button class="novaSala" onclick="novaSala()">Criar sala</button>
 			<button class="irSala" onclick="irSala()">Acessar sala</button>
 			<!--
@@ -170,31 +170,31 @@
 		<span class="fimTurno oculto smooth-fast" onclick="terminarTurno(this)">Terminar turno</span>
 
 		<div class="monte smooth-fast">
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="1"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="1"><img src="img/balao.png" /></span>
 		</div>
 
 		<div class="monte smooth-fast">
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="2"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="3"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="4"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="2"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="3"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="4"><img src="img/balao.png" /></span>
 		</div>
 
 		<div class="monte smooth-fast">
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="5"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="6"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="7"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="8"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="9"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="5"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="6"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="7"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="8"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="9"><img src="img/balao.png" /></span>
 		</div>
 	
 		<div class="monte smooth-fast">
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="10"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="11"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="12"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="13"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="14"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="15"><img src="img/balao.png" /></span>
-			<span class="dodot cadaDot" onclick="clicou(this)" data-id="16"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="10"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="11"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="12"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="13"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="14"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="15"><img src="img/balao.png" /></span>
+			<span class="dodot cadaDot oculto" onclick="clicou(this)" data-id="16"><img src="img/balao.png" /></span>
 		</div>
 
 		<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -223,6 +223,8 @@
 				if ( obj.classList.contains("oculto") ) return;
 				if ( obj.classList.contains("coletado") ) return;
 				if ( window.animando ) return;
+
+				console.log(`...... CLICOU NO DOT ${obj.dataset.id}`)
 
 				const playerAtual = document.getElementsByClassName("pSel")[0].dataset.id;
 				const playerEu = document.getElementById("eu").value;
@@ -332,17 +334,20 @@
 			let updateSala = function(){
 				if ( window.stopUpdate ) return;
 
-				const playerEu = document.getElementById("eu").value;
-				const turnoAtual = 1 * document.getElementById("turnoAtual").value;
-
+				window.agora = new Date().getTime();
 				$.post(`req.php`, {
-					action: `getSala`
+					action: `getSala`,
+					quando : window.agora 
 				}, function(dadosSala){
+					if ( dadosSala.quando != window.agora ) return;
+
 					const p1 = getP1();
 					const p2 = getP2();
 					if ( ( !p2 || p1==p2 ) && (dadosSala.p2) && (dadosSala.p1!=dadosSala.p2) ) location.reload();
 
 					const semOponente = dadosSala.p1==dadosSala.p2;
+					const playerEu = document.getElementById("eu").value;
+					const turnoAtual = 1 * document.getElementById("turnoAtual").value;
 					if ( turnoAtual == dadosSala.movimentos.length ){
 						// ATUALIZANDO A CONTAGEM DE TURNOS
 						document.getElementById("turnoAtual").value = parseInt(turnoAtual) + 1;
@@ -355,12 +360,9 @@
 						else msg =  "VOCÊ ESTÁ ASSISTINDO A PARTIDA";
 						document.getElementById("fraseVoce").innerHTML = msg;
 
-						let p, dot;
 						for ( mov of dadosSala.movimentos ) {
-							p = document.getElementById(`p${mov.player}`);
 							for ( b of mov.turno ) {
-								getDot(b).remove();
-								p.innerHTML = p.innerHTML + `<span class="dodot cadaDot coletado" data-id="${b}"><img src="img/balao.png" /></span>`;
+								$(`.cadaDot[data-id=${b}]`).appendTo(`#p${mov.player}`)
 							}
 						}
 
@@ -413,7 +415,11 @@
 			// window.stopUpdate = true;
 			setInterval(() => {
 				updateSala();
-			}, 500);
+			}, 300);
+
+			$(document).ready(function(){
+				$(`.cadaDot`).removeClass(`oculto`);
+			});
 		</script>
 
 	</body>

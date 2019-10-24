@@ -153,7 +153,7 @@
 			<input type="hidden" name="turnoAtual" id="turnoAtual" value="<?=$turnoAtual?>" />
 			<button class="copiar" onclick="copiar()">Copiar</button>
 			<button class="novaSala" onclick="novaSala()">Criar sala</button>
-			<button class="irSala" onclick="irSala()">Acessar sala de outro</button>
+			<button class="irSala" onclick="irSala()">Acessar sala</button>
 			<!--
 				INSPEÇÃO DE TURNOS VIA JSON
 				<span class="tip"><?= json_encode($sala, true); ?> <br />VC <?=$_SESSION['player']?></span>
